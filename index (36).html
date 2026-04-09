@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agente Corrector · Eval. Diagnóstico · Lengua 4º EP · CyL 2025-26</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--bg:#0f1117;--bg2:#171b26;--bg3:#1e2333;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#e8eaf0;--muted:#7a8096;--accent:#4f8ef7;--accent2:#7c5cfc;--green:#34d399;--amber:#f59e0b;--red:#f87171;--teal:#22d3ee;--pill:6px;--card:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:11px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;}
+.logo{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;}
+header h1{font-size:13px;font-weight:600;}
+header p{font-size:10px;color:var(--muted);}
+.hright{margin-left:auto;display:flex;gap:6px;}
+.tag{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--pill);padding:3px 9px;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.app{display:grid;grid-template-columns:248px 1fr 296px;height:calc(100vh - 54px);}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:12px 0 20px;}
+.slab{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;padding:10px 16px 5px;}
+.ss{padding:0 10px;margin-bottom:2px;}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .12s;font-size:12px;color:var(--muted);border:1px solid transparent;}
+.ni:hover{background:var(--bg3);color:var(--text);}
+.ni.active{background:rgba(79,142,247,.1);border-color:rgba(79,142,247,.2);color:var(--accent);}
+.ni.done{color:var(--green);}
+.ndot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--border2);}
+.ni.active .ndot{background:var(--accent);}
+.ni.done .ndot{background:var(--green);}
+.divider{height:1px;background:var(--border);margin:8px 10px;}
+.mc{margin:0 10px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--card);padding:10px 12px;}
+.mc label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:5px;}
+.mc input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-family:'Sora',sans-serif;font-size:11px;outline:none;}
+.mc input:focus{border-color:var(--accent);}
+.main{overflow-y:auto;background:var(--bg);}
+.page{display:none;padding:20px 24px;}
+.page.active{display:block;}
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+.ucard{background:var(--bg2);border:2px dashed var(--border2);border-radius:var(--card);padding:18px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.ucard:hover{border-color:var(--accent);background:rgba(79,142,247,.04);}
+.ucard.has{border-style:solid;border-color:var(--green);background:rgba(52,211,153,.04);}
+.ucard.busy{border-color:var(--amber);}
+.ucard input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.uico{font-size:26px;margin-bottom:8px;}
+.utitle{font-size:13px;font-weight:600;margin-bottom:4px;}
+.usub{font-size:11px;color:var(--muted);line-height:1.5;}
+.ust{margin-top:8px;font-size:11px;font-weight:600;color:var(--muted);}
+.ucard.has .ust{color:var(--green);}
+.pipeline{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--card);padding:10px 14px;margin-bottom:18px;overflow-x:auto;gap:0;}
+.pstep{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.pdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid var(--border2);color:var(--muted);flex-shrink:0;transition:all .3s;}
+.pdot.done{background:rgba(52,211,153,.15);border-color:var(--green);color:var(--green);}
+.pdot.active{background:rgba(79,142,247,.15);border-color:var(--accent);color:var(--accent);}
+.pdot.spinning{border-color:var(--amber);border-top-color:transparent;animation:sp .7s linear infinite;}
+.plbl{font-size:10px;color:var(--muted);}
+.plbl.done{color:var(--green);}
+.plbl.active{color:var(--text);}
+.parr{color:var(--border2);margin:0 8px;font-size:12px;}
+.prev-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;}
+.pthumb{width:72px;height:90px;border-radius:6px;object-fit:cover;border:1px solid var(--border2);flex-shrink:0;}
+.pdf-thumb{width:72px;height:90px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;color:var(--muted);text-align:center;padding:6px;flex-shrink:0;}
+.logbox{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.9;color:var(--muted);max-height:110px;overflow-y:auto;margin-bottom:14px;display:none;}
+.lok{color:var(--green);} .lerr{color:var(--red);} .linf{color:var(--accent);}
+.btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;padding:10px 20px;border-radius:var(--pill);cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;transition:opacity .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-p:hover{opacity:.85;}
+.btn-p:disabled{opacity:.3;cursor:not-allowed;}
+.btn-g{background:var(--bg3);border:1px solid var(--border2);color:var(--muted);padding:8px 16px;border-radius:var(--pill);cursor:pointer;font-family:'Sora',sans-serif;font-size:11px;transition:all .15s;}
+.btn-g:hover{color:var(--text);}
+.btn-code{background:var(--bg3);border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;transition:all .12s;}
+.btn-code.s0{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.5);color:var(--red);}
+.btn-code.s1{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.5);color:var(--green);}
+.btn-code.s2{background:rgba(79,142,247,.15);border-color:rgba(79,142,247,.5);color:var(--accent);}
+.btn-code.s9{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.35);color:var(--amber);}
+.rcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card);margin-bottom:8px;overflow:hidden;}
+.rcard.ok{border-left:3px solid var(--green);}
+.rcard.partial{border-left:3px solid var(--accent);}
+.rcard.fail{border-left:3px solid var(--red);}
+.rcard.nr{border-left:3px solid var(--amber);}
+.rhead{display:flex;align-items:center;gap:8px;padding:11px 13px;cursor:pointer;user-select:none;}
+.rnum{background:var(--bg3);border:1px solid var(--border2);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+.rdesc{font-size:12px;color:var(--text);flex:1;line-height:1.35;}
+.rcode{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;flex-shrink:0;}
+.rcode.c0{color:var(--red);} .rcode.c1{color:var(--green);} .rcode.c2{color:var(--accent);} .rcode.c9{color:var(--amber);}
+.rpts{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0;}
+.rbody{display:none;padding:0 13px 11px;border-top:1px solid var(--border);}
+.rbody.open{display:block;}
+.rresp{background:var(--bg3);border-radius:6px;padding:7px 10px;margin:8px 0;font-size:11px;color:var(--text);line-height:1.6;}
+.rjust{padding:7px 10px;background:rgba(79,142,247,.05);border:1px solid rgba(79,142,247,.14);border-radius:6px;font-size:11px;line-height:1.65;color:var(--muted);margin-top:4px;}
+.rjust-h{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.rover{display:flex;gap:4px;margin-top:8px;align-items:center;}
+.rover-lbl{font-size:10px;color:var(--muted);margin-right:2px;}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card);padding:13px;text-align:center;}
+.sval{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.slbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.nvl{border-radius:var(--card);padding:14px 18px;margin-bottom:18px;border:2px solid;}
+.nvl.n1{background:rgba(248,113,113,.05);border-color:rgba(248,113,113,.3);}
+.nvl.n2{background:rgba(245,158,11,.05);border-color:rgba(245,158,11,.3);}
+.nvl.n3{background:rgba(79,142,247,.05);border-color:rgba(79,142,247,.3);}
+.nvl.n4{background:rgba(52,211,153,.05);border-color:rgba(52,211,153,.3);}
+.nvl h3{font-size:15px;font-weight:700;}
+.nvl p{font-size:11px;margin-top:5px;color:var(--muted);line-height:1.6;}
+.n1 h3{color:var(--red);} .n2 h3{color:var(--amber);} .n3 h3{color:var(--accent);} .n4 h3{color:var(--green);}
+.ib{background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.16);border-radius:8px;padding:9px 13px;font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.7;}
+.ib strong{color:var(--teal);}
+.area-hdr{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:16px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.infbox{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--card);padding:13px;font-size:12px;line-height:1.75;color:var(--text);white-space:pre-wrap;min-height:180px;}
+.rp{background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;padding:15px;}
+.pt{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
+.sc{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--card);overflow:hidden;margin-bottom:14px;}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;border-bottom:1px solid var(--border);font-size:12px;}
+.sr:last-child{border-bottom:none;}
+.sr .l{color:var(--muted);}
+.sv{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;}
+.sv.g{color:var(--green);} .sv.w{color:var(--amber);} .sv.b{color:var(--red);}
+.nbox{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:var(--card);font-size:12px;font-weight:700;text-align:center;padding:8px;border:2px solid;margin-bottom:7px;line-height:1.3;}
+.nb1{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.3);color:var(--red);}
+.nb2{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.3);color:var(--amber);}
+.nb3{background:rgba(79,142,247,.07);border-color:rgba(79,142,247,.3);color:var(--accent);}
+.nb4{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.3);color:var(--green);}
+.nd{font-size:10px;color:var(--muted);text-align:center;line-height:1.5;margin-bottom:13px;}
+.ley{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;}
+.ldot{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid rgba(79,142,247,.2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     PANTALLA DE LOGIN
+     Contraseña hasheada con SHA-256 en el cliente.
+     Hash por defecto: "Simancas2026" 
+     Para cambiarla: actualiza PASS_HASH con el SHA-256 de tu nueva contraseña
+     ═══════════════════════════════════════════════ -->
+<div id="login-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:#0f1117;
+  display:flex;align-items:center;justify-content:center;
+">
+  <div style="
+    background:#171b26;border:1px solid rgba(255,255,255,0.13);
+    border-radius:16px;padding:40px 36px;width:340px;text-align:center;
+  ">
+    <div style="
+      background:linear-gradient(135deg,#4f8ef7,#7c5cfc);
+      border-radius:10px;width:44px;height:44px;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:15px;color:#fff;
+      margin:0 auto 18px;
+    ">ED</div>
+    <div style="font-size:16px;font-weight:700;color:#e8eaf0;margin-bottom:4px;">Agente Corrector</div>
+    <div style="font-size:11px;color:#7a8096;margin-bottom:24px;">Evaluación de Diagnóstico · CyL 2025-26</div>
+    <input
+      type="password"
+      id="login-pass"
+      placeholder="Contraseña de acceso..."
+      onkeydown="if(event.key==='Enter')checkLogin()"
+      style="
+        width:100%;background:#1e2333;border:1px solid rgba(255,255,255,0.13);
+        border-radius:8px;padding:10px 14px;color:#e8eaf0;
+        font-family:'Sora',sans-serif;font-size:13px;outline:none;
+        margin-bottom:12px;
+      "
+    />
+    <div id="login-err" style="font-size:11px;color:#f87171;margin-bottom:10px;min-height:16px;"></div>
+    <button onclick="checkLogin()" style="
+      width:100%;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);
+      border:none;color:#fff;padding:11px;border-radius:8px;
+      cursor:pointer;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;
+    ">Acceder</button>
+    <div style="margin-top:18px;font-size:10px;color:#7a8096;line-height:1.6;">
+      🔒 Los datos procesados no se almacenan.<br>
+      Los exámenes solo se envían a la API de Anthropic<br>
+      y no contienen nombres de alumnos/as.
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">ED</div>
+  <div>
+    <h1>Agente Corrector Automático · Evaluación de Diagnóstico 2025-2026 · Lengua 4º EP</h1>
+    <p>CEIP Puente de Simancas · Sube guía de corrección + examen escaneado → corrección automática</p>
+  </div>
+  <div class="hright">
+    <span class="tag">Marco CCL Español INEE</span>
+    <span class="tag">Orden EDU/17/2024</span>
+  </div>
+</header>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="mc">
+      <label>Claude API Key</label>
+      <input type="password" id="apikey" placeholder="sk-ant-..." />
+    </div>
+    <div class="mc">
+      <label>Nº Alumno/a</label>
+      <input type="text" id="alumno" placeholder="Ej: A01, A02..." />
+    </div>
+    <div class="slab">Flujo de trabajo</div>
+    <div class="ss">
+      <div class="ni active" id="nav-carga" onclick="goPage('carga')"><span class="ndot"></span><span>1. Cargar documentos</span></div>
+      <div class="ni" id="nav-resultado" onclick="goPage('resultado')"><span class="ndot"></span><span>2. Resultados corrección</span></div>
+      <div class="ni" id="nav-informe" onclick="goPage('informe')"><span class="ndot"></span><span>3. Informe para familias</span></div>
+    </div>
+    <div class="divider"></div>
+    <div class="slab">Acciones</div>
+    <div class="ss">
+      <div class="ni" onclick="exportCSV()"><span class="ndot"></span><span>Exportar CSV (EVDE)</span></div>
+      <div class="ni" onclick="resetAll()"><span class="ndot"></span><span>Nueva corrección</span></div>
+    </div>
+    <div class="divider"></div>
+    <div class="slab">Estado sesión</div>
+    <div style="padding:0 14px;font-size:10px;color:var(--muted);line-height:2.2;">
+      <div>📋 Guía: <strong id="st-guia" style="color:var(--muted)">No cargada</strong></div>
+      <div>📝 Examen: <strong id="st-examen" style="color:var(--muted)">No cargado</strong></div>
+      <div>🤖 Corregidos: <strong id="st-items" style="color:var(--muted)">0</strong></div>
+    </div>
+    <div class="divider"></div>
+    <div class="slab">Fechas clave</div>
+    <div style="padding:0 14px;font-size:10px;color:var(--muted);line-height:2.1;">
+      <div>📅 Pruebas: <strong style="color:var(--amber)">27-29 abr</strong></div>
+      <div>💾 EVDE: <strong style="color:var(--amber)">≤ 15 may</strong></div>
+      <div>🏅 Registro: <strong style="color:var(--amber)">≤ 29 may</strong></div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div id="page-carga" class="page active">
+      <div style="margin-bottom:16px;">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);color:var(--accent);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;margin-bottom:8px;">📂 Paso 1</div>
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:3px;">Cargar documentos</h2>
+        <p style="font-size:12px;color:var(--muted);">Sube la guía oficial de corrección y el examen escaneado. PDF o imágenes (JPG, PNG).</p>
+      </div>
+      <div class="pipeline">
+        <div class="pstep"><div class="pdot" id="ps1">1</div><span class="plbl" id="pl1">Guía cargada</span></div>
+        <span class="parr">→</span>
+        <div class="pstep"><div class="pdot" id="ps2">2</div><span class="plbl" id="pl2">Examen cargado</span></div>
+        <span class="parr">→</span>
+        <div class="pstep"><div class="pdot" id="ps3">3</div><span class="plbl" id="pl3">Extraer ítems</span></div>
+        <span class="parr">→</span>
+        <div class="pstep"><div class="pdot" id="ps4">4</div><span class="plbl" id="pl4">Leer respuestas</span></div>
+        <span class="parr">→</span>
+        <div class="pstep"><div class="pdot" id="ps5">5</div><span class="plbl" id="pl5">Corregir</span></div>
+        <span class="parr">→</span>
+        <div class="pstep"><div class="pdot" id="ps6">6</div><span class="plbl" id="pl6">Listo</span></div>
+      </div>
+      <div class="ib"><strong>Cómo funciona:</strong> Claude lee visualmente la guía de corrección y extrae todos los ítems y criterios exactos. Luego lee el examen escaneado, transcribe las respuestas del alumno/a y aplica los criterios automáticamente. Puedes revisar y ajustar cada código antes de exportar a EVDE.</div>
+      <div class="upload-grid">
+        <div class="ucard" id="uc-guia">
+          <input type="file" id="fi-guia" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple onchange="handleFiles('guia',this.files)" onclick="event.stopPropagation()">
+          <div class="uico">📋</div>
+          <div class="utitle">Guía de corrección oficial</div>
+          <div class="usub">Criterios, respuestas correctas y códigos.<br>PDF o imágenes (JPG, PNG)</div>
+          <div class="ust" id="us-guia">Haz clic o arrastra aquí</div>
+        </div>
+        <div class="ucard" id="uc-examen">
+          <input type="file" id="fi-examen" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple onchange="handleFiles('examen',this.files)" onclick="event.stopPropagation()">
+          <div class="uico">📝</div>
+          <div class="utitle">Examen del alumno/a</div>
+          <div class="usub">Escaneado o fotografiado. Varias páginas OK.<br>PDF o imágenes (JPG, PNG)</div>
+          <div class="ust" id="us-examen">Haz clic o arrastra aquí</div>
+        </div>
+      </div>
+      <div id="pv-guia-w" style="display:none;margin-bottom:12px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;">Vista previa · Guía</div>
+        <div class="prev-strip" id="pv-guia"></div>
+      </div>
+      <div id="pv-examen-w" style="display:none;margin-bottom:12px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;">Vista previa · Examen</div>
+        <div class="prev-strip" id="pv-examen"></div>
+      </div>
+      <div class="logbox" id="logbox"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-p" id="btn-corr" onclick="iniciarCorreccion()" disabled>
+          <span id="cspin" style="display:none" class="spin"></span>
+          ✦ Analizar y corregir automáticamente
+        </button>
+        <span id="corr-st" style="font-size:11px;color:var(--muted);"></span>
+      </div>
+    </div>
+
+    <div id="page-resultado" class="page">
+      <div style="margin-bottom:14px;">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--green);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;margin-bottom:7px;">✓ Paso 2</div>
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:3px;">Resultados de la corrección</h2>
+        <p style="font-size:12px;color:var(--muted);">Haz clic en cada ítem para ver la justificación y ajustar el código manualmente si lo necesitas.</p>
+      </div>
+      <div class="sgrid">
+        <div class="scard"><div class="sval" id="sm-co" style="color:var(--teal)">—</div><div class="slbl">Comp. Oral</div></div>
+        <div class="scard"><div class="sval" id="sm-ce" style="color:var(--accent)">—</div><div class="slbl">Comp. Escrita</div></div>
+        <div class="scard"><div class="sval" id="sm-ee" style="color:var(--green)">—</div><div class="slbl">Expr. Escrita</div></div>
+        <div class="scard"><div class="sval" id="sm-tot" style="color:var(--text)">—</div><div class="slbl">Total Lengua</div></div>
+      </div>
+      <div id="nivel-wrap" style="display:none;">
+        <div class="nvl n3" id="nivel-card"><h3 id="nivel-tit">—</h3><p id="nivel-desc">—</p></div>
+      </div>
+      <div id="items-res"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+        <button class="btn-p" onclick="genInforme()"><span id="ispin" style="display:none" class="spin"></span>Generar informe familias</button>
+        <button class="btn-g" onclick="exportCSV()">Exportar CSV (EVDE)</button>
+      </div>
+    </div>
+
+    <div id="page-informe" class="page">
+      <div style="margin-bottom:14px;">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--amber);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;margin-bottom:7px;">📄 Paso 3</div>
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:3px;">Informe individualizado para las familias</h2>
+        <p style="font-size:12px;color:var(--muted);">Modelo oficial Consejería de Educación CyL · Marco CCL Español INEE.</p>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="btn-p" onclick="genInforme()"><span id="ispin2" style="display:none" class="spin"></span>✦ Regenerar</button>
+        <button class="btn-g" onclick="copiar()">Copiar texto</button>
+      </div>
+      <div class="infbox" id="inf-cont">El informe aparecerá aquí tras completar la corrección.</div>
+    </div>
+  </main>
+
+  <aside class="rp">
+    <div class="pt">Puntuaciones</div>
+    <div class="sc">
+      <div class="sr"><span class="l">Comp. Oral</span><span class="sv" id="rp-co">—</span></div>
+      <div class="sr"><span class="l">Comp. Escrita</span><span class="sv" id="rp-ce">—</span></div>
+      <div class="sr"><span class="l">Expr. Escrita</span><span class="sv" id="rp-ee">—</span></div>
+      <div class="sr" style="border-top:1.5px solid var(--border2);"><span class="l" style="font-weight:600;color:var(--text)">TOTAL</span><span class="sv" id="rp-tot" style="font-size:14px;">—</span></div>
+    </div>
+    <div class="pt">Nivel</div>
+    <div class="nbox" id="rp-nivel" style="background:var(--bg3);border-color:var(--border2);color:var(--muted);">—</div>
+    <p class="nd" id="rp-nd">Carga y corrige el examen para ver el nivel.</p>
+    <div class="pt" style="margin-top:2px;">Leyenda</div>
+    <div style="margin-bottom:13px;">
+      <div class="ley"><span class="ldot" style="background:rgba(52,211,153,.2);border:1px solid rgba(52,211,153,.5);"></span><span style="color:var(--muted)"><strong style="color:var(--green)">1</strong> = Correcto</span></div>
+      <div class="ley"><span class="ldot" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.4);"></span><span style="color:var(--muted)"><strong style="color:var(--red)">0</strong> = Incorrecto</span></div>
+      <div class="ley"><span class="ldot" style="background:rgba(79,142,247,.15);border:1px solid rgba(79,142,247,.4);"></span><span style="color:var(--muted)"><strong style="color:var(--accent)">2</strong> = Parcial</span></div>
+      <div class="ley"><span class="ldot" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);"></span><span style="color:var(--muted)"><strong style="color:var(--amber)">9</strong> = NR / omitido</span></div>
+    </div>
+    <div class="pt">Recursos</div>
+    <div style="font-size:10px;line-height:2.2;color:var(--muted);">
+      <div><a href="https://www.educa.jcyl.es/es/temas/calidad-evaluacion/evaluaciones-educativas/evaluacion-diagnostico-castilla-leon-2025-26" target="_blank" style="color:var(--accent);text-decoration:none;">↗ Web Consejería CyL</a></div>
+      <div><a href="https://educajcyl.sharepoint.com/sites/PRUEBA_ROSA/SitePages/SCHome.aspx" target="_blank" style="color:var(--accent);text-decoration:none;">↗ Ayuda EVDE</a></div>
+      <div><a href="https://www.educa.jcyl.es/es/temas/calidad-evaluacion/evaluaciones-educativas/evaluacion-diagnostico-castilla-leon-2025-26.ficheros/1685011-MARCO%20CCL%20ESPA%C3%91OL.pdf" target="_blank" style="color:var(--accent);text-decoration:none;">↗ Marco CCL Español</a></div>
+      <div><a href="https://www.educa.jcyl.es/es/temas/calidad-evaluacion/evaluaciones-educativas/evaluacion-diagnostico-castilla-leon-2025-26.ficheros/1685000-Modelo%20de%20Informe%20Adaptado%204%C2%BA%20PRIMARIA.docx" target="_blank" style="color:var(--accent);text-decoration:none;">↗ Modelo Informe</a></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+
+// ── CONTRASEÑA DE ACCESO ────────────────────────────────────────
+// SHA-256 de "Simancas2026" — cambia este hash para cambiar la contraseña
+// Para generar un nuevo hash: https://emn178.github.io/online-tools/sha256.html
+const PASS_HASH = '3496c02d9c2cc65589a980ce8693e6f4520422a7b88f27803209883534443758';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkLogin() {
+  const pass = document.getElementById('login-pass').value;
+  if (!pass) { document.getElementById('login-err').textContent = 'Introduce la contraseña.'; return; }
+  const hash = await sha256(pass);
+  if (hash === PASS_HASH) {
+    sessionStorage.setItem('ed_auth', '1');
+    document.getElementById('login-screen').style.display = 'none';
+  } else {
+    document.getElementById('login-err').textContent = 'Contraseña incorrecta.';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+function checkAuth() {
+  if (sessionStorage.getItem('ed_auth') !== '1') {
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+}
+
+const APP = { apiKey:'', alumno:'', guia:[], examen:[], items:[], resultados:[] };
+const savedKey = localStorage.getItem('ed_api_key');
+if (savedKey) { document.getElementById('apikey').value = savedKey; APP.apiKey = savedKey; }
+document.getElementById('apikey').oninput = e => { APP.apiKey = e.target.value; localStorage.setItem('ed_api_key', e.target.value); };
+document.getElementById('alumno').oninput = e => APP.alumno = e.target.value;
+
+window.onload = () => { checkAuth(); setupDrop('uc-guia','guia'); setupDrop('uc-examen','examen'); };
+
+function setupDrop(id, tipo) {
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', e => { e.preventDefault(); el.style.borderColor='var(--accent)'; });
+  el.addEventListener('dragleave', () => el.style.borderColor='');
+  el.addEventListener('drop', e => { e.preventDefault(); el.style.borderColor=''; handleFiles(tipo, e.dataTransfer.files); });
+}
+
+async function handleFiles(tipo, files) {
+  if (!files?.length) return;
+  const card = document.getElementById('uc-' + tipo);
+  const st = document.getElementById('us-' + tipo);
+  card.classList.add('busy'); st.textContent = `Procesando ${files.length} archivo(s)…`;
+  const res = [];
+  for (const f of Array.from(files)) {
+    const b64 = await toB64(f);
+    const mime = f.type || guessMime(f.name);
+    res.push({ name: f.name, base64: b64, mimeType: mime, isPDF: mime === 'application/pdf' });
+  }
+  APP[tipo] = res;
+  card.classList.remove('busy'); card.classList.add('has');
+  st.textContent = `✓ ${res.length} archivo(s) cargado(s)`;
+  document.getElementById('st-' + tipo).textContent = `${res.length} pág.`;
+  document.getElementById('st-' + tipo).style.color = 'var(--green)';
+  renderPreviews(tipo, res);
+  pstep(tipo === 'guia' ? 1 : 2, 'done');
+  checkReady();
+}
+
+function toB64(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+}
+function guessMime(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  return {pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp'}[ext]||'image/jpeg';
+}
+function renderPreviews(tipo, files) {
+  const wrap = document.getElementById('pv-'+tipo+'-w');
+  const strip = document.getElementById('pv-'+tipo);
+  strip.innerHTML=''; wrap.style.display='block';
+  files.forEach(f => {
+    if (f.isPDF) {
+      const d = document.createElement('div'); d.className='pdf-thumb';
+      d.innerHTML=`<div style="font-size:22px;margin-bottom:4px;">📄</div><div>${f.name.length>14?f.name.slice(0,12)+'…':f.name}</div>`;
+      strip.appendChild(d);
+    } else {
+      const img = document.createElement('img');
+      img.src=`data:${f.mimeType};base64,${f.base64}`; img.className='pthumb'; img.title=f.name;
+      strip.appendChild(img);
+    }
+  });
+}
+function checkReady() {
+  const ok = APP.guia.length>0 && APP.examen.length>0 && APP.apiKey;
+  document.getElementById('btn-corr').disabled = !ok;
+  if (!APP.apiKey && (APP.guia.length>0 || APP.examen.length>0)) {
+    document.getElementById('corr-st').textContent = 'Introduce la API Key para continuar';
+  } else if (ok) {
+    document.getElementById('corr-st').textContent = '¡Listo para corregir!';
+  }
+}
+function pstep(n, estado) {
+  document.getElementById('ps'+n).className = 'pdot '+(estado==='spin'?'spinning':estado);
+  document.getElementById('pl'+n).className = 'plbl '+estado;
+}
+function log(msg, t='inf') {
+  const b = document.getElementById('logbox'); b.style.display='block';
+  const s = document.createElement('span'); s.className=t==='ok'?'lok':t==='err'?'lerr':'linf';
+  s.textContent=msg+'\n'; b.appendChild(s); b.scrollTop=b.scrollHeight;
+}
+
+// ── LLAMADA API — patrón correcto para artifacts claude.ai ──────
+async function callClaude(content, maxTokens) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': APP.apiKey, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, messages: [{ role: 'user', content }] })
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(`HTTP ${res.status}: ${e}`); }
+  return res.json();
+}
+
+function buildContent(files, prompt) {
+  const content = [];
+  for (const f of files) {
+    if (f.isPDF) content.push({ type:'document', source:{ type:'base64', media_type:'application/pdf', data:f.base64 }});
+    else content.push({ type:'image', source:{ type:'base64', media_type:f.mimeType, data:f.base64 }});
+  }
+  content.push({ type:'text', text:prompt });
+  return content;
+}
+
+async function iniciarCorreccion() {
+  if (!APP.apiKey) { alert('Introduce tu API Key de Claude en la barra lateral.'); return; }
+  const btn = document.getElementById('btn-corr'), spin = document.getElementById('cspin');
+  btn.disabled=true; spin.style.display='inline-block';
+  document.getElementById('logbox').innerHTML=''; APP.resultados=[];
+  try {
+    pstep(1,'done'); pstep(2,'done');
+    pstep(3,'spin'); log('🔍 Analizando guía de corrección…');
+    APP.items = await extraerItems();
+    log(`✓ ${APP.items.length} ítems extraídos`,'ok'); pstep(3,'done');
+    pstep(4,'spin'); log('👁️ Leyendo respuestas del alumno/a…');
+    const respuestas = await leerRespuestas();
+    log(`✓ Respuestas leídas`,'ok'); pstep(4,'done');
+    pstep(5,'spin'); log('⚡ Aplicando criterios de corrección…');
+    APP.resultados = await corregir(respuestas);
+    document.getElementById('st-items').textContent = APP.resultados.length;
+    document.getElementById('st-items').style.color='var(--green)';
+    log(`✓ ${APP.resultados.length} ítems corregidos`,'ok'); pstep(5,'done'); pstep(6,'done');
+    log('🎉 Corrección completada.','ok');
+    renderResultados(); updateScores(); goPage('resultado');
+    document.getElementById('nav-resultado').classList.add('done');
+  } catch(e) {
+    log('❌ '+e.message,'err');
+  } finally {
+    btn.disabled=false; spin.style.display='none'; checkReady();
+  }
+}
+
+async function extraerItems() {
+  const prompt = `Eres experto en la Evaluación de Diagnóstico de Castilla y León 4º EP, Lengua Castellana y Literatura (Marco CCL Español INEE, Orden EDU/17/2024).
+
+Analiza esta guía de corrección oficial y extrae TODOS los ítems. Para cada uno devuelve JSON con:
+- id: código único (ej. CO01, CE03, EE01)
+- num: número/etiqueta tal como aparece
+- area: "CO" / "CE" / "EE"
+- descriptor: descripción breve de qué evalúa
+- proceso: "Obtener información" / "Interpretar e integrar" / "Reflexionar y evaluar" / "Producción escrita"
+- tipo: "cerrado" / "semiconstruido" / "abierto" / "escala"
+- codigos_posibles: array ej. ["0","1","9"] o ["0","1","2","9"]
+- criterio_correcto: qué se considera correcto (código 1)
+- criterio_parcial: descripción código 2 o null
+- max_pts: puntuación máxima (1 o 2)
+- respuesta_correcta: opción correcta si es cerrado, null si abierto
+
+Devuelve SOLO array JSON válido, sin texto extra ni markdown.`;
+  const data = await callClaude(buildContent(APP.guia, prompt), 2000);
+  const txt = (data.content?.[0]?.text||'[]').replace(/\`\`\`json|\`\`\`/g,'').trim();
+  try { return JSON.parse(txt); } catch { log('⚠️ JSON de guía no parseable','err'); return []; }
+}
+
+async function leerRespuestas() {
+  const prompt = `Eres corrector de la Evaluación de Diagnóstico CyL 4º EP, Lengua Castellana.
+
+Analiza este examen escaneado y extrae las respuestas del alumno/a para cada ítem:
+- id: identificador del ítem tal como aparece
+- respuesta_alumno: transcripción literal de lo escrito/marcado
+- tipo_respuesta: "marcada" / "escrita" / "en_blanco" / "ilegible"
+
+Si marcó opción múltiple indica cuál (A/B/C/D o V/F). Transcribe el texto literal con las faltas incluidas. Si hay producción escrita (EE) transcríbela completa.
+
+Devuelve SOLO array JSON válido, sin texto extra ni markdown.`;
+  const data = await callClaude(buildContent(APP.examen, prompt), 3000);
+  const txt = (data.content?.[0]?.text||'[]').replace(/\`\`\`json|\`\`\`/g,'').trim();
+  try { return JSON.parse(txt); } catch { return []; }
+}
+
+async function corregir(respuestas) {
+  const alumno = APP.alumno || 'el alumno/a';
+  const prompt = `Eres corrector oficial de la Evaluación de Diagnóstico 2025-2026 CyL, 4º EP, Lengua Castellana y Literatura.
+Marco normativo: Marco CCL Español INEE, Orden EDU/17/2024, Resolución 5 marzo 2026.
+
+ÍTEMS DE LA GUÍA:
+${JSON.stringify(APP.items, null, 2)}
+
+RESPUESTAS DE ${alumno.toUpperCase()}:
+${JSON.stringify(respuestas, null, 2)}
+
+Corrige CADA ítem cruzando respuesta con criterio. Para cada uno devuelve:
+- id, num, area, descriptor, proceso, tipo
+- respuesta_alumno
+- codigos_posibles: array de códigos válidos para este ítem
+- codigo: "0","1","2" o "9"
+- justificacion: 2-3 frases explicando el código según el criterio
+- pts: puntos obtenidos
+- max_pts: puntuación máxima
+
+Reglas: 1=correcto, 2=parcial (solo si el ítem lo admite), 0=incorrecto, 9=blanco/ilegible.
+Para expresión escrita usa escala 0-2 en cada dimensión de la rúbrica.
+
+Devuelve SOLO array JSON válido, sin texto extra ni markdown.`;
+  const data = await callClaude([{type:'text',text:prompt}], 3500);
+  const txt = (data.content?.[0]?.text||'[]').replace(/\`\`\`json|\`\`\`/g,'').trim();
+  try { return JSON.parse(txt); } catch { log('⚠️ Error parseando corrección','err'); return []; }
+}
+
+function renderResultados() {
+  const cont = document.getElementById('items-res'); cont.innerHTML='';
+  if (!APP.resultados.length) { cont.innerHTML='<p style="color:var(--muted);font-size:13px;">Sin resultados.</p>'; return; }
+  const areas = {CO:'Comprensión Oral',CE:'Comprensión Escrita',EE:'Expresión Escrita'};
+  ['CO','CE','EE'].forEach(area => {
+    const items = APP.resultados.filter(r=>r.area===area);
+    if (!items.length) return;
+    const h = document.createElement('div'); h.className='area-hdr'; h.textContent=areas[area]||area; cont.appendChild(h);
+    items.forEach(item => cont.appendChild(buildCard(item)));
+  });
+}
+
+function buildCard(item) {
+  const card = document.createElement('div');
+  const cm={'1':'ok','2':'partial','0':'fail','9':'nr'};
+  card.className='rcard '+(cm[item.codigo]||''); card.id='rc-'+item.id;
+  const cl={'0':'0 · Incorrecto','1':'1 · Correcto','2':'2 · Parcial','9':'9 · NR'};
+  const opts = item.codigos_posibles||['0','1','2','9'];
+  const btns = opts.map(op=>`<button class="btn-code${op===item.codigo?' s'+op:''}" onclick="override('${item.id}','${op}');event.stopPropagation()">${op}</button>`).join('');
+  const resp = item.respuesta_alumno ? `<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:7px 0 3px;">Respuesta del alumno/a</div><div class="rresp">${item.respuesta_alumno}</div>` : '';
+  card.innerHTML = `
+    <div class="rhead" onclick="toggleCard('${item.id}')">
+      <span class="rnum">${item.num||item.id}</span>
+      <span class="rdesc">${item.descriptor||'—'}</span>
+      <span class="rcode c${item.codigo}">${cl[item.codigo]||item.codigo}</span>
+      <span class="rpts">${item.pts||0}/${item.max_pts||1}</span>
+    </div>
+    <div class="rbody" id="rb-${item.id}">
+      ${resp}
+      <div class="rjust"><div class="rjust-h">✦ Justificación · Marco CCL CyL</div>${item.justificacion||'Sin justificación.'}</div>
+      <div class="rover"><span class="rover-lbl">Corregir:</span>${btns}</div>
+    </div>`;
+  return card;
+}
+
+function toggleCard(id) { document.getElementById('rb-'+id)?.classList.toggle('open'); }
+
+function override(itemId, code) {
+  const item = APP.resultados.find(r=>r.id===itemId); if(!item) return;
+  item.codigo=code; item.pts=code==='9'?0:parseInt(code);
+  const card = document.getElementById('rc-'+itemId); if(!card) return;
+  const cm={'1':'ok','2':'partial','0':'fail','9':'nr'};
+  card.className='rcard '+(cm[code]||'');
+  const cl={'0':'0 · Incorrecto','1':'1 · Correcto','2':'2 · Parcial','9':'9 · NR'};
+  const ce = card.querySelector('.rcode'); if(ce){ce.textContent=cl[code]||code;ce.className='rcode c'+code;}
+  const pe = card.querySelector('.rpts'); if(pe) pe.textContent=`${item.pts}/${item.max_pts||1}`;
+  (item.codigos_posibles||['0','1','2','9']).forEach(op=>{
+    const b=card.querySelector(`.btn-code[onclick*="'${op}'"]`);
+    if(b) b.className='btn-code'+(op===code?' s'+op:'');
+  });
+  updateScores();
+}
+
+function updateScores() {
+  const byArea = a => { const it=APP.resultados.filter(r=>r.area===a); return {pts:it.reduce((s,i)=>s+(i.pts||0),0),max:it.reduce((s,i)=>s+(i.max_pts||1),0)}; };
+  const co=byArea('CO'),ce=byArea('CE'),ee=byArea('EE');
+  const tot=co.pts+ce.pts+ee.pts, max=co.max+ce.max+ee.max;
+  const fmt=o=>o.max===0?'—':`${o.pts}/${o.max}`;
+  ['co','ce','ee'].forEach((a,i)=>{ const v=[co,ce,ee][i]; document.getElementById('rp-'+a).textContent=fmt(v); document.getElementById('sm-'+a).textContent=fmt(v); });
+  const t=max===0?'—':`${tot}/${max}`;
+  document.getElementById('rp-tot').textContent=t; document.getElementById('sm-tot').textContent=t;
+  if(max>0) setNivel(tot/max);
+}
+
+function setNivel(r) {
+  let cls,clsb,lbl,desc;
+  if(r>=0.75){cls='n4';clsb='nb4';lbl='Nivel 4 — Avanzado';desc='Supera los objetivos. Comprensión profunda y expresión escrita de alta calidad.';}
+  else if(r>=0.5){cls='n3';clsb='nb3';lbl='Nivel 3 — Adecuado';desc='Alcanza los objetivos. Comprende bien y produce textos con corrección aceptable.';}
+  else if(r>=0.25){cls='n2';clsb='nb2';lbl='Nivel 2 — Básico';desc='Alcanza parcialmente los objetivos. Necesita refuerzo en algunas destrezas.';}
+  else{cls='n1';clsb='nb1';lbl='Nivel 1 — Inicial';desc='Dificultades significativas. Requiere plan de refuerzo individualizado.';}
+  document.getElementById('rp-nivel').className='nbox '+clsb; document.getElementById('rp-nivel').textContent=lbl;
+  document.getElementById('rp-nd').textContent=desc;
+  const nc=document.getElementById('nivel-card'); if(nc){nc.className='nvl '+cls;document.getElementById('nivel-tit').textContent=lbl;document.getElementById('nivel-desc').textContent=desc;document.getElementById('nivel-wrap').style.display='block';}
+}
+
+async function genInforme() {
+  ['ispin','ispin2'].forEach(id=>{const s=document.getElementById(id);if(s)s.style.display='inline-block';});
+  document.getElementById('inf-cont').textContent='Generando informe…'; goPage('informe');
+  const alumno=APP.alumno||'Alumno/a';
+  const co=APP.resultados.filter(r=>r.area==='CO'),ce=APP.resultados.filter(r=>r.area==='CE'),ee=APP.resultados.filter(r=>r.area==='EE');
+  const sum=arr=>({pts:arr.reduce((s,i)=>s+(i.pts||0),0),max:arr.reduce((s,i)=>s+(i.max_pts||1),0)});
+  const sco=sum(co),sce=sum(ce),see=sum(ee);
+  const tot=sco.pts+sce.pts+see.pts,max=sco.max+sce.max+see.max;
+  const pct=max>0?Math.round(tot/max*100):0;
+  const nivel=pct>=75?'Nivel 4 — Avanzado':pct>=50?'Nivel 3 — Adecuado':pct>=25?'Nivel 2 — Básico':'Nivel 1 — Inicial';
+  const detalle=APP.resultados.map(r=>`• ${r.num||r.id} [${r.area}] Cód:${r.codigo} ${r.pts||0}/${r.max_pts||1}pts | Resp:"${r.respuesta_alumno||''}" | ${r.justificacion||''}`).join('\n');
+  const prompt=`Eres corrector oficial Evaluación de Diagnóstico 2025-2026 CyL, 4º EP, Lengua Castellana.
+Centro: CEIP Puente de Simancas, Valladolid | Alumno/a: ${alumno} | Corrector: Luis Ángel González Ortega | Fecha: 28 abril 2026
+PUNTUACIONES: CO:${sco.pts}/${sco.max} | CE:${sce.pts}/${sce.max} | EE:${see.pts}/${see.max} | TOTAL:${tot}/${max}(${pct}%) | Nivel:${nivel}
+DETALLE: ${detalle}
+Redacta informe oficial para familias con estructura: encabezado, tabla resultados por destreza, nivel de rendimiento (descripción en positivo), competencias demostradas, aspectos a reforzar (tono constructivo), orientaciones para familias (3-4 recomendaciones prácticas). Firma: Luis Ángel González Ortega, CEIP Puente de Simancas. Tono formal y empático.`;
+  try {
+    const data=await callClaude([{type:'text',text:prompt}],1200);
+    document.getElementById('inf-cont').textContent=data.content?.[0]?.text||'Error.';
+    document.getElementById('nav-informe').classList.add('done');
+  } catch(e) { document.getElementById('inf-cont').textContent='Error: '+e.message; }
+  finally { ['ispin','ispin2'].forEach(id=>{const s=document.getElementById(id);if(s)s.style.display='none';}); }
+}
+
+function exportCSV() {
+  if(!APP.resultados.length){alert('No hay resultados que exportar.');return;}
+  const alumno=APP.alumno||'alumno';
+  const rows=[['Ítem','Área','Descriptor','Proceso','Tipo','Código_EVDE','Puntos','Max','Respuesta','Justificacion']];
+  APP.resultados.forEach(r=>rows.push([r.num||r.id,r.area,(r.descriptor||'').replace(/,/g,' '),r.proceso||'',r.tipo||'',r.codigo||'',r.pts||0,r.max_pts||1,(r.respuesta_alumno||'').replace(/[\n,]/g,' '),(r.justificacion||'').replace(/[\n,]/g,' ')]));
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`eval-diag-${alumno.replace(/\s+/g,'-')}.csv`;a.click();
+}
+
+function copiar() { navigator.clipboard.writeText(document.getElementById('inf-cont').textContent).then(()=>alert('Copiado.')); }
+
+function resetAll() {
+  if(!confirm('¿Borrar todo?'))return;
+  APP.guia=[];APP.examen=[];APP.items=[];APP.resultados=[];
+  document.getElementById('alumno').value='';APP.alumno='';
+  ['guia','examen'].forEach(t=>{document.getElementById('us-'+t).textContent='Haz clic o arrastra aquí';document.getElementById('uc-'+t).className='ucard';document.getElementById('pv-'+t+'-w').style.display='none';document.getElementById('st-'+t).textContent='No cargado';document.getElementById('st-'+t).style.color='var(--muted)';});
+  document.getElementById('st-items').textContent='0';document.getElementById('st-items').style.color='var(--muted)';
+  document.getElementById('logbox').innerHTML='';document.getElementById('logbox').style.display='none';
+  document.getElementById('inf-cont').textContent='El informe aparecerá aquí tras completar la corrección.';
+  document.getElementById('items-res').innerHTML='';document.getElementById('btn-corr').disabled=true;document.getElementById('corr-st').textContent='';
+  for(let i=1;i<=6;i++){document.getElementById('ps'+i).className='pdot';document.getElementById('pl'+i).className='plbl';}
+  ['co','ce','ee'].forEach(a=>{document.getElementById('rp-'+a).textContent='—';});
+  document.getElementById('rp-tot').textContent='—';document.getElementById('rp-nivel').className='nbox';document.getElementById('rp-nivel').textContent='—';
+  document.getElementById('nivel-wrap').style.display='none';
+  ['nav-resultado','nav-informe'].forEach(id=>document.getElementById(id).classList.remove('done'));
+  goPage('carga');
+}
+
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
+}
+</script>
+</body>
+</html>
